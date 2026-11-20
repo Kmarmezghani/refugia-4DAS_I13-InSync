@@ -47,12 +47,12 @@ Le diagramme d'architecture globale est dans `Documentation/Diagrams/`.
 
 | Service | Responsabilité | Base |
 |---|---|---|
-| `ms1-animaux` | Fiches, statuts et historique des animaux | MySQL |
-| `ms2-demandes-adoption` | Demandes d'adoption et leur suivi | MySQL |
-| `ms3-familles-accueil` | Familles d'accueil et placements | MySQL |
-| `ms4-suivi-veterinaire` | Dossiers médicaux, soins, vaccins | MySQL |
-| `ms5-dons-parrainages` | Dons, parrainages et statistiques | MySQL |
-| `ms6-visites-rendezvous` | Créneaux de visite, événements, liste d'attente | MySQL |
+| `ms1-animaux` | Fiches, statuts et historique des animaux | postgresql |
+| `ms2-demandes-adoption` | Demandes d'adoption et leur suivi | postgresql |
+| `ms3-familles-accueil` | Familles d'accueil et placements | postgresql |
+| `ms4-suivi-veterinaire` | Dossiers médicaux, soins, vaccins | postgresql |
+| `ms5-dons-parrainages` | Dons, parrainages et statistiques | postgresql |
+| `ms6-visites-rendezvous` | Créneaux de visite, événements, liste d'attente | postgresql |
 | `ms7-notifications` | Notifications (service commun) | MongoDB |
 
 ## 6. Répartition des tâches
