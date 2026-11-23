@@ -9,10 +9,10 @@ import org.springframework.context.annotation.Configuration;
 public class OpenApiConfig {
 
     @Bean
-    public OpenAPI refugiaAnimauxOpenApi() {
+    public OpenAPI animauxOpenApi() {
         return new OpenAPI().info(new Info()
                 .title("Refugia · MS1 Animaux")
                 .version("0.1.0")
-                .description("Fiches des animaux, statuts, photos et historique. Service de référence pour MS2 à MS6."));
+                .description("Fiches des animaux, statuts, photos et historique."));
     }
 }
