@@ -1,4 +1,4 @@
-package com.refugia.ms3_familles.dto;
+package com.awd.ms3_familles.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

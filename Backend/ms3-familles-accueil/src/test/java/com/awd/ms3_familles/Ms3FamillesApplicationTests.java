@@ -1,4 +1,4 @@
-package com.refugia.ms3_familles;
+package com.awd.ms3_familles;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

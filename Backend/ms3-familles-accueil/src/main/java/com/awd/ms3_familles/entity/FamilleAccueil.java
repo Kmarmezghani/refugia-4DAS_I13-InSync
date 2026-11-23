@@ -1,6 +1,6 @@
-package com.refugia.ms3_familles.entity;
+package com.awd.ms3_familles.entity;
 
-import com.refugia.ms3_familles.enums.StatutFamille;
+import com.awd.ms3_familles.enums.StatutFamille;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;

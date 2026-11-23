@@ -1,4 +1,4 @@
-package com.refugia.ms3_familles;
+package com.awd.ms3_familles;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
