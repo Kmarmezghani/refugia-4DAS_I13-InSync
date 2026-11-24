@@ -10,10 +10,8 @@ import java.util.Optional;
 
 @Repository
 public interface PlacementRepository extends JpaRepository<Placement, Long> {
-
-    // Find all placements for a specific family
     List<Placement> findByFamilleId(Long familleId);
-
-    // Find all placements for a specific animal (useful to check if it's already placed)
+    List<Placement> findByStatut(StatutPlacement statut);
+    List<Placement> findByAnimalId(Long animalId);
     Optional<Placement> findByAnimalIdAndStatut(Long animalId, StatutPlacement statut);
 }
