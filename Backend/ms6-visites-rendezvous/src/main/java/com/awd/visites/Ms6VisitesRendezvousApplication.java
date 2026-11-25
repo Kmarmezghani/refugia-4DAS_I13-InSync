@@ -1,4 +1,4 @@
-package com.awd.ms6visitesrendezvous;
+package com.awd.visites;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
