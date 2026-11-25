@@ -4,6 +4,7 @@ import com.awd.ms3_familles.common.exception.ResourceNotFoundException;
 import com.awd.ms3_familles.dto.FamilleRequest;
 import com.awd.ms3_familles.entity.FamilleAccueil;
 import com.awd.ms3_familles.enums.StatutFamille;
+import com.awd.ms3_familles.mapper.FamilleMapper;
 import com.awd.ms3_familles.repository.FamilleRepository;
 import org.springframework.stereotype.Service;
 
@@ -13,19 +14,15 @@ import java.util.List;
 public class FamilleService {
 
     private final FamilleRepository repository;
+    private final FamilleMapper mapper;
 
-    public FamilleService(FamilleRepository repository) {
+    public FamilleService(FamilleRepository repository, FamilleMapper mapper) {
         this.repository = repository;
+        this.mapper = mapper;
     }
 
     public FamilleAccueil creerFamille(FamilleRequest request) {
-        FamilleAccueil famille = new FamilleAccueil();
-        famille.setNom(request.nom());
-        famille.setTelephone(request.telephone());
-        famille.setEmail(request.email());
-        famille.setAdresse(request.adresse());
-        famille.setCapacite(request.capacite());
-        famille.setEspecesAcceptees(request.especesAcceptees());
+        FamilleAccueil famille = mapper.toEntity(request);
         return repository.save(famille);
     }
 
