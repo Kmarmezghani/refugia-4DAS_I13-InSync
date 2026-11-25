@@ -10,11 +10,11 @@ Depuis ce dossier, avec `JAVA_HOME` pointant vers un JDK 17, lancer la commande 
 .\mvnw.cmd test
 ```
 
-Les tests activent le profil `test`, qui utilise une base H2 en mémoire en mode PostgreSQL. Ils vérifient le démarrage, Swagger et le parcours d'un dossier médical.
+Les tests activent le profil `test`, qui utilise une base H2 en mémoire en mode PostgreSQL. Ils vérifient le démarrage, Swagger et les parcours des dossiers médicaux, des consultations, des vaccinations et des traitements.
 
 ## Démarrage local
 
-Créer une base PostgreSQL 16 avec un utilisateur autorisé à y créer des tables. MS4 initialise la table `dossier_medical` au démarrage. L'URL par défaut est `jdbc:postgresql://localhost:5432/veterinaire_db`. Définir `MS4_DB_URL` si la base utilise une autre URL.
+Créer une base PostgreSQL 16 avec un utilisateur autorisé à y créer des tables. MS4 initialise les tables `dossier_medical`, `consultation`, `vaccination` et `traitement` au démarrage. L'URL par défaut est `jdbc:postgresql://localhost:5432/veterinaire_db`. Définir `MS4_DB_URL` si la base utilise une autre URL.
 
 ```powershell
 $env:MS4_DB_USER = Read-Host 'Utilisateur PostgreSQL'
@@ -34,3 +34,60 @@ Avec le profil local `dev`, MS4 simule la vérification de MS1 pour les animaux 
 3. Dans `PATCH /api/vet/records/{id}`, envoyer `{"notesGenerales":"Suivi à planifier"}`. La valeur `null` efface les notes.
 
 Une seconde ouverture pour le même animal renvoie `409`.
+
+## Enregistrer une consultation
+
+Dans `POST /api/vet/consultations`, utiliser l'`id` d'un dossier existant pour `dossierId`.
+
+```json
+{
+  "dossierId": 1,
+  "dateConsultation": "2026-11-25",
+  "motif": "Contrôle de routine"
+}
+```
+
+Les champs `diagnostic`, `poids`, `temperature` et `remarques` sont facultatifs. Si le poids est renseigné, il doit être positif.
+
+Consulter l'historique avec `GET /api/vet/records/1/consultations`. Il est trié par date décroissante. Pour lire une consultation précise, utiliser son `id` dans `GET /api/vet/consultations/{id}`.
+
+## Enregistrer une vaccination et consulter les rappels
+
+Envoyer ce corps dans `POST /api/vet/vaccinations` avec l'identifiant d'un dossier existant.
+
+```json
+{
+  "dossierId": 1,
+  "vaccin": "Rage",
+  "dateVaccination": "2026-11-25",
+  "dateRappel": "2026-12-02"
+}
+```
+
+L'historique est disponible dans `GET /api/vet/records/{id}/vaccinations`. Dans `PATCH /api/vet/vaccinations/{id}`, renseigner les champs à corriger. Envoyer `{"dateRappel":null}` pour retirer le rappel.
+
+`GET /api/vet/vaccinations/reminders` retourne les vaccinations ayant une date de rappel, de la plus ancienne à la plus récente. Le filtre facultatif `beforeDate` retient les rappels strictement antérieurs à cette date. Le filtre facultatif `statut` utilise les valeurs suivantes.
+
+- `EN_RETARD` si la date de rappel est passée.
+- `A_RAPPELER` si le rappel est prévu aujourd'hui ou dans les sept prochains jours.
+- `A_JOUR` si la date de rappel est plus éloignée ou absente.
+
+La tâche quotidienne rafraîchit les statuts à 08 h 00, selon l'heure du serveur. Avec le profil `dev`, elle journalise chaque événement `RappelVaccination` simulé une seule fois pour la date de rappel courante. Un changement de cette date réinitialise `rappelPublie`. La consultation des rappels est en lecture seule. RabbitMQ sera raccordé lors de l'intégration.
+
+## Suivre un traitement
+
+Créer un traitement dans `POST /api/vet/treatments`.
+
+```json
+{
+  "dossierId": 1,
+  "medicament": "Médicament prescrit",
+  "posologie": "Selon ordonnance",
+  "dateDebut": "2026-11-25",
+  "dateFin": "2026-12-05"
+}
+```
+
+La date de fin est facultative. Un traitement est créé avec le statut `EN_COURS` et apparaît dans `GET /api/vet/records/{id}/treatments`. Pour le suspendre, envoyer `{"statut":"SUSPENDU"}` à `PATCH /api/vet/treatments/{id}/status`.
+
+Les transitions suivantes sont retenues pour le développement en attendant la validation de l'équipe. Un traitement en cours peut être suspendu ou terminé. Un traitement suspendu peut reprendre ou être terminé. `TERMINE` est final. Renvoyer le statut courant retourne `200`. Une transition interdite retourne `409`.

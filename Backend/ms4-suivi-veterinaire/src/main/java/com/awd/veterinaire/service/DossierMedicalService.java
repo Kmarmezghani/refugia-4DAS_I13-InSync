@@ -63,7 +63,7 @@ public class DossierMedicalService {
         return mapper.versResponse(dossier);
     }
 
-    private DossierMedical trouverDossier(Long id) {
+    DossierMedical trouverDossier(Long id) {
         return repository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                         "Dossier médical introuvable : " + id));
