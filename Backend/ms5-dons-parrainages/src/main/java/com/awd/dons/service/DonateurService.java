@@ -74,7 +74,7 @@ public class DonateurService {
     }
 
     /** Cherche le donateur ou renvoie 404 Not Found */
-    private Donateur getEntity(Long id) {
+    public Donateur getEntity(Long id) {
         return donateurRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                         "Donateur " + id + " introuvable"));
