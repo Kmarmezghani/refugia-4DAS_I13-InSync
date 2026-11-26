@@ -13,10 +13,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@RestController                      // Renvoie du JSON
-@RequestMapping("/api/donateurs")    // Préfixe commun à toutes les routes de cette classe
+@RestController
+@RequestMapping("/api/donateurs")
 @RequiredArgsConstructor
-@Tag(name = "Donateurs")             // Titre du groupe dans Swagger
+@Tag(name = "Donateurs")
 public class DonateurController {
 
     private final DonateurService donateurService;
@@ -24,8 +24,7 @@ public class DonateurController {
     @PostMapping
     @Operation(summary = "Créer un donateur")
     public ResponseEntity<DonateurResponse> creer(@Valid @RequestBody DonateurRequest req) {
-        // @Valid déclenche les vérifications (@NotBlank, @Email...) -> 400 si invalide
-        // 201 Created au lieu de 200
+
         return ResponseEntity.status(HttpStatus.CREATED).body(donateurService.creer(req));
     }
 
@@ -51,6 +50,6 @@ public class DonateurController {
     @Operation(summary = "Supprimer un donateur")
     public ResponseEntity<Void> supprimer(@PathVariable Long id) {
         donateurService.supprimer(id);
-        return ResponseEntity.noContent().build();   // 204 No Content
+        return ResponseEntity.noContent().build();
     }
 }

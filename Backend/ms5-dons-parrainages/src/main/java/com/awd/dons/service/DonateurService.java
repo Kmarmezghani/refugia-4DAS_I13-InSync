@@ -23,7 +23,6 @@ public class DonateurService {
     /** CREATE */
     @Transactional
     public DonateurResponse creer(DonateurRequest req) {
-        // Règle métier : e-mail unique -> 409 Conflict
         if (donateurRepository.existsByEmailIgnoreCase(req.email().trim())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     "Un donateur existe déjà avec l'e-mail " + req.email());

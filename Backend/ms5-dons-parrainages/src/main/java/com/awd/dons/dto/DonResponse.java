@@ -13,8 +13,8 @@ public record DonResponse(
         BigDecimal montant,
         StatutDon statut,
         LocalDateTime dateDon,
-        String message
-       // Long paiementId,
-        //String numeroRecu
+        String message,
+        Long paiementId,
+        String numeroRecu
 ) {
 }

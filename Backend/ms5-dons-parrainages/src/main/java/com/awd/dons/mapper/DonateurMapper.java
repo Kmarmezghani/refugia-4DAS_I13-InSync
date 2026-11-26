@@ -20,8 +20,8 @@ public final class DonateurMapper {
     }
 
     public static void copier(DonateurRequest req, Donateur d) {
-        d.setNom(req.nom().trim());                    // trim() enlève les espaces au début et à la fin
-        d.setEmail(req.email().trim().toLowerCase());  // e-mails toujours en minuscules
+        d.setNom(req.nom().trim());
+        d.setEmail(req.email().trim().toLowerCase());
         d.setTelephone(req.telephone());
     }
 }

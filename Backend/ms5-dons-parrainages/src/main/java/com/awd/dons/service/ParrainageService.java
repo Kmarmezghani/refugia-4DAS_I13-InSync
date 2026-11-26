@@ -8,6 +8,7 @@ import com.awd.dons.mapper.PaiementMapper;
 import com.awd.dons.mapper.ParrainageMapper;
 import com.awd.dons.repository.PaiementRepository;
 import com.awd.dons.repository.ParrainageRepository;
+import com.awd.dons.repository.RecuRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,11 +21,11 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ParrainageService {
 
-    /** Un parrainage "en cours" est ACTIF ou SUSPENDU (pas encore TERMINE). */
     private static final List<StatutParrainage> EN_COURS = List.of(StatutParrainage.ACTIF, StatutParrainage.SUSPENDU);
 
     private final ParrainageRepository parrainageRepository;
     private final PaiementRepository paiementRepository;
+    private final RecuRepository recuRepository;
     private final DonateurService donateurService;
     private final PaiementService paiementService;
 
@@ -32,7 +33,6 @@ public class ParrainageService {
     public ParrainageResponse creer(ParrainageRequest req) {
         Donateur donateur = donateurService.getEntity(req.donateurId());
 
-        // TODO S6 : vérifier l'animal auprès de MS1 (OpenFeign) -> 404 / 503
 
         if (parrainageRepository.existsByDonateurIdAndAnimalIdAndStatutIn(donateur.getId(), req.animalId(), EN_COURS)) {
             throw new ConflictException("Ce donateur parraine déjà l'animal " + req.animalId());
@@ -46,7 +46,6 @@ public class ParrainageService {
         p.setStatut(StatutParrainage.ACTIF);
         p = parrainageRepository.save(p);
 
-        // TODO S7 : publier ParrainageCréé (clé parrainage.cree)
 
         return ParrainageMapper.toResponse(p);
     }
@@ -61,11 +60,7 @@ public class ParrainageService {
         return ParrainageMapper.toResponse(getEntity(id));
     }
 
-    /**
-     * Transitions autorisées :
-     *   ACTIF -> SUSPENDU, SUSPENDU -> ACTIF, ACTIF/SUSPENDU -> TERMINE.
-     *   Un parrainage TERMINE ne change plus (409).
-     */
+
     @Transactional
     public ParrainageResponse changerStatut(Long id, ChangementStatutRequest req) {
         Parrainage p = getEntity(id);
@@ -82,12 +77,10 @@ public class ParrainageService {
         p.setStatut(nouveau);
         if (nouveau == StatutParrainage.TERMINE) {
             p.setDateFin(LocalDate.now());
-            // TODO S7 : publier ParrainageTerminé (clé parrainage.termine) avec req.motif()
         }
         return ParrainageMapper.toResponse(parrainageRepository.save(p));
     }
 
-    /** Paiement d'un mois : seulement si ACTIF, et un seul paiement par mois. */
     @Transactional
     public PaiementResponse payerMois(Long id, PaiementParrainageRequest req) {
         Parrainage p = getEntity(id);
@@ -108,38 +101,33 @@ public class ParrainageService {
         paiement.setModePaiement(req.modePaiement());
         paiement.setDatePaiement(LocalDateTime.now());
         paiement.setStatut(StatutPaiement.VALIDE);
+        Recu recu = paiementService.enregistrerAvecRecu(paiement);
 
-        return PaiementMapper.toResponse(paiementService.enregistrer(paiement));
+        return PaiementMapper.toResponse(recu.getPaiement(), recu);
     }
 
     @Transactional(readOnly = true)
     public List<PaiementResponse> paiements(Long id) {
         getEntity(id);
         return paiementRepository.findByParrainageIdOrderByDatePaiementDesc(id).stream()
-                .map(PaiementMapper::toResponse)
+                .map(pa -> PaiementMapper.toResponse(pa, recuRepository.findByPaiementId(pa.getId()).orElse(null)))
                 .toList();
     }
 
-    /** GET /api/animaux/{animalId}/parrains : les parrainages ACTIF d'un animal. */
     @Transactional(readOnly = true)
     public List<ParrainageResponse> parrainsDeLAnimal(Long animalId) {
-        // TODO S6 : 404 si l'animal n'existe pas dans MS1
         return parrainageRepository.findByAnimalIdAndStatutIn(animalId, List.of(StatutParrainage.ACTIF)).stream()
                 .map(ParrainageMapper::toResponse)
                 .toList();
     }
 
-    /**
-     * Sera appelé en S7 par l'écouteur de l'événement AdoptionFinalisée (MS2) :
-     * l'animal est adopté, donc ses parrainages en cours se terminent.
-     */
+
     @Transactional
     public int terminerPourAdoption(Long animalId) {
         List<Parrainage> enCours = parrainageRepository.findByAnimalIdAndStatutIn(animalId, EN_COURS);
         for (Parrainage p : enCours) {
             p.setStatut(StatutParrainage.TERMINE);
             p.setDateFin(LocalDate.now());
-            // TODO S7 : publier ParrainageTerminé avec motif "Animal adopté"
         }
         parrainageRepository.saveAll(enCours);
         return enCours.size();

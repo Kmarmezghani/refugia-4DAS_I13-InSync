@@ -13,7 +13,6 @@ public interface ParrainageRepository extends JpaRepository<Parrainage, Long> {
 
     boolean existsByDonateurId(Long donateurId);
 
-    /** Empêche un donateur de parrainer deux fois le même animal en même temps. */
     boolean existsByDonateurIdAndAnimalIdAndStatutIn(Long donateurId, Long animalId,
                                                      Collection<StatutParrainage> statuts);
 

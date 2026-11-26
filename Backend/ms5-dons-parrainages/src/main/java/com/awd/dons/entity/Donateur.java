@@ -8,25 +8,25 @@ import lombok.Setter;
 import java.time.LocalDate;
 
 
-@Entity                      // Cette classe est une table de la base
-@Table(name = "donateur")    // Nom exact de la table (comme dans le dossier technique)
-@Getter                      // Lombok : génère getNom(), getEmail()...
-@Setter                      // Lombok : génère setNom(), setEmail()...
-@NoArgsConstructor           // Constructeur vide, obligatoire pour JPA
+@Entity
+@Table(name = "donateur")
+@Getter
+@Setter
+@NoArgsConstructor
 public class Donateur {
 
-    @Id                                                   // Clé primaire
-    @GeneratedValue(strategy = GenerationType.IDENTITY)   // Auto-incrémentée par PostgreSQL (1, 2, 3...)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)                 // NOT NULL
+    @Column(nullable = false)
     private String nom;
 
-    @Column(nullable = false, unique = true)  // NOT NULL + UNIQUE : deux donateurs ne peuvent pas avoir le même e-mail
+    @Column(nullable = false, unique = true)
     private String email;
 
-    private String telephone;                 // Facultatif : pas de @Column, donc peut être NULL
+    private String telephone;
 
-    @Column(nullable = false)                 // Devient la colonne "date_inscription"
+    @Column(nullable = false)
     private LocalDate dateInscription;
 }

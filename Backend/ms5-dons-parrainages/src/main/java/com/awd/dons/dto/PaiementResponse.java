@@ -13,7 +13,7 @@ public record PaiementResponse(
         BigDecimal montant,
         LocalDateTime datePaiement,
         ModePaiement modePaiement,
-        StatutPaiement statut
-       // String numeroRecu
+        StatutPaiement statut,
+        String numeroRecu
 ) {
 }
