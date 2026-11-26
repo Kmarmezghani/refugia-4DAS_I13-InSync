@@ -14,8 +14,8 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDate;
 import java.util.List;
 
-@Service                    // Spring crée et gère cet objet
-@RequiredArgsConstructor    // Lombok : constructeur avec les champs "final" -> Spring injecte le repository
+@Service
+@RequiredArgsConstructor
 public class DonateurService {
 
     private final DonateurRepository donateurRepository;
@@ -70,10 +70,9 @@ public class DonateurService {
     public void supprimer(Long id) {
         Donateur d = getEntity(id);
         donateurRepository.delete(d);
-        // Plus tard (étape 7) : refuser si le donateur a déjà des dons -> 409
+
     }
 
-    /** Cherche le donateur ou renvoie 404 Not Found */
     public Donateur getEntity(Long id) {
         return donateurRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,

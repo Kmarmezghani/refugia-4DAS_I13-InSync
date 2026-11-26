@@ -6,12 +6,7 @@ import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
 
-/**
- * Enregistrer un don.
- * animalId est optionnel (don au refuge en général).
- * NB : quand Keycloak sera en place (S8), donateurId sera lu dans le jeton
- * et non plus dans le corps de la requête.
- */
+
 public record DonRequest(
         @NotNull(message = "Le donateur est obligatoire")
         Long donateurId,

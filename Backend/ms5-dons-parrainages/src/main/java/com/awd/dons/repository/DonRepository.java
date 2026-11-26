@@ -13,7 +13,6 @@ public interface DonRepository extends JpaRepository<Don, Long> {
 
     boolean existsByDonateurId(Long donateurId);
 
-    /** Filtre optionnel : si un paramètre est null, il est ignoré. */
     @Query("""
             select d from Don d
             where (:animalId is null or d.animalId = :animalId)

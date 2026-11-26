@@ -27,7 +27,6 @@ public class DonService {
     public DonResponse creer(DonRequest req) {
         Donateur donateur = donateurService.getEntity(req.donateurId());
 
-        // TODO S6 : si animalId != null, vérifier l'animal auprès de MS1 (OpenFeign) -> 404 / 503
 
         Don don = new Don();
         don.setDonateur(donateur);
@@ -38,7 +37,6 @@ public class DonService {
         don.setStatut(StatutDon.VALIDE);
         don = donRepository.save(don);
 
-        // TODO S7 : publier l'événement DonValidé (clé don.valide) dans RabbitMQ
 
         return DonMapper.toResponse(don);
     }
@@ -57,7 +55,7 @@ public class DonService {
 
     @Transactional(readOnly = true)
     public List<DonResponse> donsDuDonateur(Long donateurId) {
-        donateurService.getEntity(donateurId); // 404 si le donateur n'existe pas
+        donateurService.getEntity(donateurId);
         return donRepository.findByDonateurIdOrderByDateDonDesc(donateurId).stream()
                 .map(DonMapper::toResponse)
                 .toList();
