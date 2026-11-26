@@ -10,13 +10,15 @@ import java.util.Optional;
 
 public interface PaiementRepository extends JpaRepository<Paiement, Long> {
 
-    Optional<Paiement> findFirstByDonId(Long donId);
+    boolean existsByParrainageIdAndStatutAndDatePaiementBetween(
+            Long parrainageId, StatutPaiement statut, LocalDateTime debut, LocalDateTime fin);
 
     List<Paiement> findByParrainageIdOrderByDatePaiementDesc(Long parrainageId);
 
-    boolean existsByParrainageIdAndStatutAndDatePaiementBetween(Long parrainageId, StatutPaiement statut,
-                                                               LocalDateTime debut, LocalDateTime fin);
+    /** Le paiement le plus récent d'un don. */
+    Optional<Paiement> findFirstByDonIdOrderByDatePaiementDesc(Long donId);
 
-    List<Paiement> findByStatutAndDatePaiementBetween(StatutPaiement statut,
-                                                      LocalDateTime debut, LocalDateTime fin);
+    /** Utilisé par StatsService pour les statistiques sur une période. */
+    List<Paiement> findByStatutAndDatePaiementBetween(
+            StatutPaiement statut, LocalDateTime debut, LocalDateTime fin);
 }

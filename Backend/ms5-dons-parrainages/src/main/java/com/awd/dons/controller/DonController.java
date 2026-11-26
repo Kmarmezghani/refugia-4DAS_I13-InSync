@@ -2,6 +2,8 @@ package com.awd.dons.controller;
 
 import com.awd.dons.dto.DonRequest;
 import com.awd.dons.dto.DonResponse;
+import com.awd.dons.dto.PaiementDonRequest;
+import com.awd.dons.dto.PaiementResponse;
 import com.awd.dons.service.DonService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -38,6 +40,13 @@ public class DonController {
     @Operation(summary = "Détail d'un don")
     public DonResponse getById(@PathVariable Long id) {
         return donService.getById(id);
+    }
+
+    @PostMapping("/{id}/paiements")
+    @Operation(summary = "Payer un don en attente")
+    public ResponseEntity<PaiementResponse> payer(@PathVariable Long id,
+                                                  @Valid @RequestBody PaiementDonRequest req) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(donService.payerDon(id, req));
     }
 
     @PatchMapping("/{id}/annuler")

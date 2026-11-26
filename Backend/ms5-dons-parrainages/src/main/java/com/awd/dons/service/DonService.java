@@ -4,8 +4,14 @@ import com.awd.dons.common.exception.ConflictException;
 import com.awd.dons.common.exception.ResourceNotFoundException;
 import com.awd.dons.dto.DonRequest;
 import com.awd.dons.dto.DonResponse;
-import com.awd.dons.dto.RecuResponse;
-import com.awd.dons.entity.*;
+import com.awd.dons.dto.PaiementDonRequest;
+import com.awd.dons.dto.PaiementResponse;
+import com.awd.dons.entity.Don;
+import com.awd.dons.entity.Donateur;
+import com.awd.dons.entity.Paiement;
+import com.awd.dons.entity.Recu;
+import com.awd.dons.entity.StatutDon;
+import com.awd.dons.entity.StatutPaiement;
 import com.awd.dons.mapper.DonMapper;
 import com.awd.dons.mapper.PaiementMapper;
 import com.awd.dons.repository.DonRepository;
@@ -28,11 +34,12 @@ public class DonService {
     private final DonateurService donateurService;
     private final PaiementService paiementService;
 
-
+    /** Crée le don au statut EN_ATTENTE : il sera validé quand il sera payé. */
     @Transactional
     public DonResponse creer(DonRequest req) {
         Donateur donateur = donateurService.getEntity(req.donateurId());
 
+        // TODO S6 : vérifier l'animal auprès de MS1 (OpenFeign) -> 404 / 503
 
         Don don = new Don();
         don.setDonateur(donateur);
@@ -43,9 +50,32 @@ public class DonService {
         don.setStatut(StatutDon.EN_ATTENTE);
         don = donRepository.save(don);
 
+        return toResponse(don);
+    }
+
+    @Transactional(readOnly = true)
+    public List<DonResponse> rechercher(Long animalId, Long donateurId) {
+        return donRepository.rechercher(animalId, donateurId).stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public DonResponse getById(Long id) {
+        return toResponse(getEntity(id));
+    }
+
+    /** Paiement d'un don : seulement s'il est EN_ATTENTE. Génère le reçu et valide le don. */
+    @Transactional
+    public PaiementResponse payerDon(Long id, PaiementDonRequest req) {
+        Don don = getEntity(id);
+        if (don.getStatut() != StatutDon.EN_ATTENTE) {
+            throw new ConflictException("Ce don n'est pas en attente de paiement (statut " + don.getStatut() + ")");
+        }
+
         Paiement paiement = new Paiement();
         paiement.setDon(don);
-        paiement.setMontant(req.montant());
+        paiement.setMontant(don.getMontant());
         paiement.setModePaiement(req.modePaiement());
         paiement.setDatePaiement(LocalDateTime.now());
         paiement.setStatut(StatutPaiement.VALIDE);
@@ -54,54 +84,33 @@ public class DonService {
         don.setStatut(StatutDon.VALIDE);
         donRepository.save(don);
 
+        // TODO S7 : publier DonValidé (clé don.valide)
 
-        return DonMapper.toResponse(don, recu.getPaiement(), recu);
+        return PaiementMapper.toResponse(recu.getPaiement(), recu);
     }
 
-    @Transactional(readOnly = true)
-    public List<DonResponse> rechercher(Long animalId, Long donateurId) {
-        return donRepository.rechercher(animalId, donateurId).stream().map(this::toResponse).toList();
-    }
-
-    @Transactional(readOnly = true)
-    public DonResponse getById(Long id) {
-        return toResponse(getEntity(id));
-    }
-
-    @Transactional(readOnly = true)
-    public List<DonResponse> donsDuDonateur(Long donateurId) {
-        donateurService.getEntity(donateurId); // 404 si le donateur n'existe pas
-        return donRepository.findByDonateurIdOrderByDateDonDesc(donateurId).stream().map(this::toResponse).toList();
-    }
-
-    @Transactional(readOnly = true)
-    public RecuResponse getRecu(Long donId) {
-        getEntity(donId);
-        Paiement paiement = paiementRepository.findFirstByDonId(donId)
-                .orElseThrow(() -> new ResourceNotFoundException("Aucun paiement pour le don " + donId));
-        Recu recu = recuRepository.findByPaiementId(paiement.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Aucun reçu pour le don " + donId));
-        return PaiementMapper.toResponse(recu);
-    }
-
+    /** Un don n'est annulable que tant qu'il est EN_ATTENTE (pas encore payé). */
     @Transactional
     public DonResponse annuler(Long id) {
         Don don = getEntity(id);
-        if (don.getStatut() == StatutDon.ANNULE) {
-            throw new ConflictException("Le don " + id + " est déjà annulé");
+        if (don.getStatut() != StatutDon.EN_ATTENTE) {
+            throw new ConflictException("Seul un don en attente peut être annulé (statut " + don.getStatut() + ")");
         }
         don.setStatut(StatutDon.ANNULE);
         return toResponse(donRepository.save(don));
     }
 
+    /** Retrouve le paiement et le reçu du don (null s'il n'est pas encore payé), puis construit la réponse. */
+    private DonResponse toResponse(Don don) {
+        Paiement paiement = paiementRepository.findFirstByDonIdOrderByDatePaiementDesc(don.getId()).orElse(null);
+        Recu recu = paiement != null
+                ? recuRepository.findByPaiementId(paiement.getId()).orElse(null)
+                : null;
+        return DonMapper.toResponse(don, paiement, recu);
+    }
+
     private Don getEntity(Long id) {
         return donRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Don " + id + " introuvable"));
-    }
-
-    private DonResponse toResponse(Don don) {
-        Paiement paiement = paiementRepository.findFirstByDonId(don.getId()).orElse(null);
-        Recu recu = paiement != null ? recuRepository.findByPaiementId(paiement.getId()).orElse(null) : null;
-        return DonMapper.toResponse(don, paiement, recu);
     }
 }
