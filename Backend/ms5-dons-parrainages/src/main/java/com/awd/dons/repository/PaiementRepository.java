@@ -15,10 +15,8 @@ public interface PaiementRepository extends JpaRepository<Paiement, Long> {
 
     List<Paiement> findByParrainageIdOrderByDatePaiementDesc(Long parrainageId);
 
-    /** Le paiement le plus récent d'un don. */
     Optional<Paiement> findFirstByDonIdOrderByDatePaiementDesc(Long donId);
 
-    /** Utilisé par StatsService pour les statistiques sur une période. */
     List<Paiement> findByStatutAndDatePaiementBetween(
             StatutPaiement statut, LocalDateTime debut, LocalDateTime fin);
 }
