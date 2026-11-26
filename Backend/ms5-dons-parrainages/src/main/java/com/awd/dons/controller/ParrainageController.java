@@ -46,7 +46,7 @@ public class ParrainageController {
         return parrainageService.changerStatut(id, req);
     }
 
-   /* @PostMapping("/{id}/paiements")
+    @PostMapping("/{id}/paiements")
     @Operation(summary = "Enregistrer le paiement du mois (génère un reçu)")
     public ResponseEntity<PaiementResponse> payer(@PathVariable Long id, @Valid @RequestBody PaiementParrainageRequest req) {
         return ResponseEntity.status(HttpStatus.CREATED).body(parrainageService.payerMois(id, req));
@@ -56,5 +56,5 @@ public class ParrainageController {
     @Operation(summary = "Lister les paiements d'un parrainage")
     public List<PaiementResponse> paiements(@PathVariable Long id) {
         return parrainageService.paiements(id);
-    }*/
+    }
 }
