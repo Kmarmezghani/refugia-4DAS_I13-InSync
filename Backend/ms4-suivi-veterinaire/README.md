@@ -25,6 +25,19 @@ $env:MS4_DB_PASSWORD = [System.Net.NetworkCredential]::new('', $motDePasse).Pass
 
 Ouvrir [Swagger UI](http://localhost:8040/swagger-ui.html) ou consulter le document [OpenAPI JSON](http://localhost:8040/v3/api-docs).
 
+## Découverte de service avec Eureka
+
+Le profil `eureka` active l'enregistrement sous le nom `ms4-suivi-veterinaire` et la lecture du registre. Le port de MS4 est `8040`. Le démarrage habituel avec `dev` et les tests H2 fonctionnent avec Eureka désactivé.
+
+Avec PostgreSQL et un registre Eureka disponibles, se placer dans le dossier MS4. Dans le même terminal PowerShell, configurer `JAVA_HOME` pour Java 17 et renseigner `MS4_DB_USER` et `MS4_DB_PASSWORD` comme ci-dessus. Lancer ensuite MS4 avec le profil `eureka`.
+
+```powershell
+$env:EUREKA_CLIENT_SERVICEURL_DEFAULTZONE = 'http://localhost:8761/eureka/'
+.\mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=eureka"
+```
+
+L'URL est facultative pour un registre local sur le port `8761`. Dans le réseau Docker du groupe, utiliser l'URL du registre partagé, par exemple `http://eureka:8761/eureka/`. Vérifier dans le tableau de bord Eureka que `MS4-SUIVI-VETERINAIRE` apparaît avec le statut `UP`.
+
 ## Essayer le parcours d'un dossier
 
 Avec le profil local `dev`, MS4 simule la vérification de MS1 pour les animaux `1`, `2` et `12`. Sans ce profil, l'ouverture renvoie `503` tant que le client MS1 n'est pas intégré. Les autorisations Keycloak seront ajoutées lors de l'intégration.
